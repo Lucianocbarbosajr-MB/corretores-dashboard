@@ -143,7 +143,7 @@ const CAMPOS = [{n:"Ligações",i:"📞"},{n:"Leads",i:"🎯"},{n:"Conversas",i:
 const AVATAR_CORES = ["#7B1FA2","#0277BD","#2E7D32","#C62828","#E65100","#00838F","#558B2F","#6A1B9A","#283593"];
 const AVATARES = {"Fabio Thomaz":"FT","Bruna Sagati":"BS","Yuri Volcov":"YV","Fernanda Batalhone":"FB","Diego Gaspar":"DG","Vilma Colaço":"VC","Sergio Junior":"SJ","Lucas Afonso":"LA","Sibele Gois":"SG"};
 
-let DADOS = [], METAS = {}, REUNIOES = [];
+let DADOS = [], METAS = {}, REUNIOES = [], VGV_REAL = {};
 
 // LOGIN
 window.entrar = () => {
@@ -164,6 +164,13 @@ async function carregarTudo(){
     getDocs(collection(db,"reunioes"))
   ]);
   DADOS = lancSnap.docs.map(d=>({id:d.id,...d.data()}));
+  // Pre-calc VGV real per corretor
+  VGV_REAL = {};
+  CORRETORES.forEach(c=>VGV_REAL[c]=0);
+  DADOS.forEach(r=>{
+    if(VGV_REAL[r.corretor]!==undefined && r.valores_venda)
+      r.valores_venda.forEach(v=>VGV_REAL[r.corretor]+=v);
+  });
   metaSnap.docs.forEach(d=>{ METAS[d.data().corretor]=d.data(); });
   REUNIOES = reunSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);
   renderFunil();
@@ -231,7 +238,11 @@ function renderMetas(){
     const m=METAS[c]||null, v=ac[c];
     html+=`<div style="padding:12px 0;border-bottom:1px solid #F0EBF8"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;font-weight:600;color:var(--text)">${c.split(" ")[0]}</span><button class="btn-sec" onclick="editarMeta('${c}')">✏️ Editar</button></div>`;
     if(m&&m.vendas_mes){
+      const vgv_real = VGV_REAL[c]||0;
+      const vgv_meta = m.comissao/(m.perc_com/100);
+      const pVgv = pct(vgv_real,vgv_meta);
       [["Leads",v[1],m.leads_mes],["Visitas",v[4],m.visitas_mes],["Vendas",v[6],m.vendas_mes]].forEach(([n,real,meta])=>{const pp=pct(real,meta);html+=`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:3px"><span>${n}</span><span style="color:${cc(pp)};font-weight:600">${real}/${meta} · ${pp}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pp}%;background:${cc(pp)}"></div></div></div>`;});
+      html+=`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:3px"><span>🏡 VGV</span><span style="color:${cc(pVgv)};font-weight:600">R$ ${(vgv_real/1000).toFixed(0)}k / R$ ${(vgv_meta/1000).toFixed(0)}k · ${pVgv}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pVgv}%;background:${cc(pVgv)}"></div></div></div>`;
     } else html+=`<span style="font-size:12px;color:#BBA;">Meta não configurada</span>`;
     html+=`</div>`;
   });
@@ -239,16 +250,73 @@ function renderMetas(){
 }
 
 window.editarMeta = (cor) => {
-  const m=METAS[cor]||{comissao:23500,perc_com:1.2,ticket:450000,visitas_venda:8,atend_visita:5,leads_atend:3};
-  document.getElementById("tab-metas").innerHTML=`<div class="card" style="margin-top:14px"><div class="sec">Metas — ${cor.split(" ")[0]}</div>
-    <div class="meta-row"><span class="meta-label">🎯 Objetivo comissão (R$)</span><input class="meta-input" type="number" id="m-com" value="${m.comissao}"></div>
-    <div class="meta-row"><span class="meta-label">% Comissão efetiva</span><input class="meta-input" type="number" id="m-pcom" value="${m.perc_com}" step="0.1"></div>
-    <div class="meta-row"><span class="meta-label">🏷️ Ticket médio (R$)</span><input class="meta-input" type="number" id="m-tick" value="${m.ticket}"></div>
-    <div class="meta-row"><span class="meta-label">🏠 Visitas por venda</span><input class="meta-input" type="number" id="m-vpv" value="${m.visitas_venda}"></div>
-    <div class="meta-row"><span class="meta-label">💬 Atend. por visita</span><input class="meta-input" type="number" id="m-apv" value="${m.atend_visita}"></div>
-    <div class="meta-row"><span class="meta-label">🎯 Leads por atend.</span><input class="meta-input" type="number" id="m-lpa" value="${m.leads_atend}"></div>
-    <button class="btn-main" onclick="salvarMeta('${cor}')">Salvar</button>
-    <button class="btn-sec" style="width:100%;margin-top:8px" onclick="renderMetas()">Cancelar</button></div>`;
+  const m=METAS[cor]||{comissao:23500,perc_com:1.4,ticket:600000,visitas_venda:8,atend_visita:5,leads_atend:3};
+  document.getElementById("tab-metas").innerHTML=`<div class="card" style="margin-top:14px">
+    <div class="sec">Metas — ${cor.split(" ")[0]}</div>
+    <div style="background:#F8F5FF;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--sub)">
+      Preencha os campos amarelos. Os demais são calculados automaticamente.
+    </div>
+    <div style="background:#FFFDE7;border-radius:10px;padding:14px;margin-bottom:14px">
+      <div class="sec" style="margin-bottom:10px">Definição de metas</div>
+      <div class="meta-row"><span class="meta-label">🎯 Objetivo comissão (R$)</span><input class="meta-input" type="number" id="m-com" value="${m.comissao}" oninput="calcMeta()"></div>
+      <div class="meta-row"><span class="meta-label">% Comissão efetiva</span><input class="meta-input" type="number" id="m-pcom" value="${m.perc_com}" step="0.1" oninput="calcMeta()"></div>
+      <div class="meta-row"><span class="meta-label">🏷️ Ticket médio (R$)</span><input class="meta-input" type="number" id="m-tick" value="${m.ticket}" oninput="calcMeta()"></div>
+      <div class="meta-row"><span class="meta-label">🏠 Visitas por venda</span><input class="meta-input" type="number" id="m-vpv" value="${m.visitas_venda}" oninput="calcMeta()"></div>
+      <div class="meta-row"><span class="meta-label">💬 Atend. por visita</span><input class="meta-input" type="number" id="m-apv" value="${m.atend_visita}" oninput="calcMeta()"></div>
+      <div class="meta-row"><span class="meta-label">🎯 Leads por atend.</span><input class="meta-input" type="number" id="m-lpa" value="${m.leads_atend}" oninput="calcMeta()"></div>
+    </div>
+    <div style="background:#E8F5E9;border-radius:10px;padding:14px;margin-bottom:14px" id="calc-result">
+    </div>
+    <button class="btn-main" onclick="salvarMeta('${cor}')">Salvar metas</button>
+    <button class="btn-sec" style="width:100%;margin-top:8px" onclick="renderMetas()">Cancelar</button>
+  </div>`;
+  calcMeta();
+};
+
+window.calcMeta = () => {
+  const com = +document.getElementById("m-com").value||0;
+  const pcom = +document.getElementById("m-pcom").value||1.4;
+  const tick = +document.getElementById("m-tick").value||1;
+  const vpv = +document.getElementById("m-vpv").value||1;
+  const apv = +document.getElementById("m-apv").value||1;
+  const lpa = +document.getElementById("m-lpa").value||1;
+  const vgv = com/(pcom/100);
+  const vendas = vgv/tick;
+  const visitas = vendas*vpv;
+  const atend = visitas*apv;
+  const leads = atend*lpa;
+  const fmt = (n) => n.toLocaleString("pt-BR",{maximumFractionDigits:0});
+  const fmtR = (n) => "R$ "+n.toLocaleString("pt-BR",{maximumFractionDigits:2});
+  document.getElementById("calc-result").innerHTML=`
+    <div class="sec" style="margin-bottom:10px">Metas desdobradas (automático)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div style="text-align:center;background:#fff;border-radius:8px;padding:10px 6px">
+        <div style="font-size:10px;color:var(--sub);margin-bottom:3px">VGV necessário</div>
+        <div style="font-size:13px;font-weight:700;color:#2E7D32">${fmtR(vgv)}</div>
+      </div>
+      <div style="text-align:center;background:#fff;border-radius:8px;padding:10px 6px">
+        <div style="font-size:10px;color:var(--sub);margin-bottom:3px">Vendas</div>
+        <div style="font-size:18px;font-weight:700;color:var(--roxo)">${fmt(vendas)}</div>
+        <div style="font-size:10px;color:var(--sub)">${(vendas/4).toFixed(1)}/sem · ${(vendas/24).toFixed(2)}/dia</div>
+      </div>
+      <div style="text-align:center;background:#fff;border-radius:8px;padding:10px 6px">
+        <div style="font-size:10px;color:var(--sub);margin-bottom:3px">Visitas</div>
+        <div style="font-size:18px;font-weight:700;color:var(--roxo)">${fmt(visitas)}</div>
+        <div style="font-size:10px;color:var(--sub)">${(visitas/4).toFixed(1)}/sem · ${(visitas/24).toFixed(1)}/dia</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="text-align:center;background:#fff;border-radius:8px;padding:10px 6px">
+        <div style="font-size:10px;color:var(--sub);margin-bottom:3px">Atendimentos</div>
+        <div style="font-size:18px;font-weight:700;color:var(--roxo)">${fmt(atend)}</div>
+        <div style="font-size:10px;color:var(--sub)">${(atend/4).toFixed(1)}/sem · ${(atend/24).toFixed(1)}/dia</div>
+      </div>
+      <div style="text-align:center;background:#fff;border-radius:8px;padding:10px 6px">
+        <div style="font-size:10px;color:var(--sub);margin-bottom:3px">Novos Leads</div>
+        <div style="font-size:18px;font-weight:700;color:var(--roxo)">${fmt(leads)}</div>
+        <div style="font-size:10px;color:var(--sub)">${(leads/4).toFixed(1)}/sem · ${(leads/24).toFixed(1)}/dia</div>
+      </div>
+    </div>`;
 };
 
 window.salvarMeta = async (cor) => {

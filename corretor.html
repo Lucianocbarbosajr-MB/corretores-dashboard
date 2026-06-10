@@ -123,13 +123,24 @@ const CAMPOS = [
 
 // Build form
 const nf = document.getElementById("num-fields");
-nf.innerHTML = CAMPOS.map((f,i) => `
-  <div class="num-row">
-    <span class="num-icon">${f.i}</span>
-    <span class="num-name">${f.n}</span>
-    <input class="num-input" type="number" id="nv-${i}" value="0" min="0"
-      oninput="if(this.value<0)this.value=0; ${i===6 ? 'atualizarCamposVenda()' : ''}">
-  </div>`).join("");
+// Build campos form
+CAMPOS.forEach((f,i) => {
+  const row = document.createElement("div");
+  row.className = "num-row";
+  row.innerHTML = `<span class="num-icon">${f.i}</span><span class="num-name">${f.n}</span>`;
+  const inp = document.createElement("input");
+  inp.className = "num-input";
+  inp.type = "number";
+  inp.id = "nv-"+i;
+  inp.value = "0";
+  inp.min = "0";
+  inp.addEventListener("input", function(){
+    if(this.value < 0) this.value = 0;
+    if(i === 6) atualizarCamposVenda();
+  });
+  row.appendChild(inp);
+  nf.appendChild(row);
+});
 
 document.getElementById("f-data").value = new Date().toISOString().slice(0,10);
 document.getElementById("loading").style.display = "none";
@@ -163,6 +174,12 @@ function atualizarCamposVenda(){
   }
 }
 
+function fmtVal(v){
+  if(v >= 1000000) return "R$ " + (v/1000000).toFixed(2).replace('.',',') + "M";
+  if(v >= 1000) return "R$ " + (v/1000).toFixed(0) + "k";
+  return "R$ " + v.toLocaleString("pt-BR",{maximumFractionDigits:0});
+}
+
 window.onCorChange = async () => {
   const cor = document.getElementById("f-cor").value;
   const wrap = document.getElementById("meta-wrap");
@@ -191,12 +208,18 @@ window.onCorChange = async () => {
       <div class="meta-item"><div class="meta-item-label">Vendas</div><div class="meta-item-val">${v[6]}/${meta.vendas_mes}</div><div class="meta-item-pct" style="color:${cc(pVd)}">${pVd}%</div></div>
     </div>
     <div class="meta-prog-wrap">
-      <div class="meta-prog-label"><span>🏆 Comissão</span><span>R$ ${com_real.toLocaleString("pt-BR",{maximumFractionDigits:0})} / R$ ${meta.comissao.toLocaleString("pt-BR")}</span></div>
+      <div class="meta-prog-label">
+        <span>🏆 Comissão</span>
+        <span>${fmtVal(com_real)} / ${fmtVal(meta.comissao)}</span>
+      </div>
       <div class="meta-prog-track"><div class="meta-prog-fill" style="width:${pVgv}%;background:${cc(pVgv)}"></div></div>
     </div>
     <div class="meta-prog-wrap">
-      <div class="meta-prog-label"><span>🏡 VGV</span><span>R$ ${(vgv_real/1000).toFixed(0)}k / R$ ${(vgv_meta/1000).toFixed(0)}k</span></div>
-      <div class="meta-prog-track"><div class="meta-prog-fill" style="width:${pVgv}%;background:rgba(255,255,255,0.5)"></div></div>
+      <div class="meta-prog-label">
+        <span>🏡 VGV</span>
+        <span>${fmtVal(vgv_real)} / ${fmtVal(vgv_meta)}</span>
+      </div>
+      <div class="meta-prog-track"><div class="meta-prog-fill" style="width:${pVgv}%;background:rgba(255,255,255,0.6)"></div></div>
     </div>
   </div>`;
 };

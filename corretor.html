@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lançamento Diário — Corretores</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{--roxo:#4B0082;--roxo2:#7B1FA2;--roxo-light:#EDE7F6;--verde:#2E7D32;--bg:#F4F0FA;--card:#FFFFFF;--border:#E0D7F0;--text:#1A1A2E;--sub:#6B6B8A;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;}
+  .topbar{background:var(--roxo);padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(75,0,130,0.3);}
+  .topbar-logo{width:32px;height:32px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .topbar-title{color:#fff;font-size:16px;font-weight:600;flex:1;}
+  .topbar-sub{color:rgba(255,255,255,0.6);font-size:12px;}
+  .page{padding:20px 16px;max-width:480px;margin:0 auto;}
+  .card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:14px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(75,0,130,0.06);}
+  .sec{font-size:11px;font-weight:600;color:var(--roxo2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+  .field-wrap{margin-bottom:14px;}
+  .field-label{font-size:12px;color:var(--sub);margin-bottom:6px;display:block;font-weight:500;}
+  .fi{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;background:#FAFAFA;color:var(--text);transition:border-color .2s;}
+  .fi:focus{outline:none;border-color:var(--roxo2);background:#fff;}
+  select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B8A' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+  .meta-banner{background:linear-gradient(135deg,#3a006f 0%,#7B1FA2 100%);border-radius:16px;padding:18px 20px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden;}
+  .meta-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:rgba(255,255,255,0.05);border-radius:50%;}
+  .meta-banner-title{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;font-weight:600;}
+  .meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .meta-item{background:rgba(255,255,255,0.1);border-radius:10px;padding:10px 8px;text-align:center;}
+  .meta-item-label{font-size:10px;opacity:.7;margin-bottom:4px;}
+  .meta-item-val{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;}
+  .meta-item-pct{font-size:10px;margin-top:3px;opacity:.85;}
+  .meta-prog-wrap{margin-bottom:8px;}
+  .meta-prog-label{display:flex;justify-content:space-between;font-size:11px;opacity:.75;margin-bottom:4px;}
+  .meta-prog-track{background:rgba(255,255,255,0.15);border-radius:4px;height:6px;overflow:hidden;}
+  .meta-prog-fill{height:100%;border-radius:4px;transition:width .6s;}
+  .num-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F0EBF8;}
+  .num-row:last-child{border-bottom:none;padding-bottom:0;}
+  .num-icon{font-size:18px;width:28px;text-align:center;}
+  .num-name{font-size:14px;color:var(--text);flex:1;font-weight:500;}
+  .num-input{width:80px;border:1.5px solid var(--border);border-radius:10px;padding:10px 10px;font-size:17px;font-family:'DM Mono',monospace;font-weight:600;background:#F8F5FF;color:var(--text);text-align:center;-moz-appearance:textfield;}
+  .num-input:focus{outline:none;border-color:var(--roxo2);background:#fff;}
+  .num-input::-webkit-inner-spin-button,.num-input::-webkit-outer-spin-button{-webkit-appearance:none;}
+  /* Campo valor da venda */
+  .venda-valor-wrap{background:#F8F5FF;border-radius:10px;padding:14px 16px;margin-top:10px;border:1px solid var(--roxo-light);display:none;}
+  .venda-valor-title{font-size:12px;font-weight:600;color:var(--roxo2);margin-bottom:10px;}
+  .venda-item{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .venda-item:last-child{margin-bottom:0;}
+  .venda-label{font-size:13px;color:var(--sub);flex:1;}
+  .venda-input{width:140px;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'DM Mono',monospace;background:#fff;color:var(--text);text-align:right;}
+  .venda-input:focus{outline:none;border-color:var(--roxo2);}
+  .btn-main{width:100%;background:var(--roxo);color:#fff;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s,transform .1s;margin-top:4px;}
+  .btn-main:active{background:var(--roxo2);transform:scale(.98);}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--verde);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:500;transition:transform .3s;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .meta-empty{background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:#F57F17;text-align:center;}
+  .loading{text-align:center;padding:40px 20px;color:var(--sub);font-size:14px;}
+  .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--roxo);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">🏠</div>
+  <div>
+    <div class="topbar-title">Lançamento Diário</div>
+    <div class="topbar-sub">Preencha seus indicadores</div>
+  </div>
+</div>
+<div class="page">
+  <div id="loading" class="loading"><div class="spinner"></div>Conectando...</div>
+  <div id="app" style="display:none">
+    <div class="card">
+      <div class="sec">Identificação</div>
+      <div class="field-wrap">
+        <label class="field-label">Seu nome</label>
+        <select class="fi" id="f-cor" onchange="onCorChange()">
+          <option value="">Selecione seu nome...</option>
+        </select>
+      </div>
+      <div class="field-wrap" style="margin-bottom:0">
+        <label class="field-label">Data</label>
+        <input type="date" class="fi" id="f-data">
+      </div>
+    </div>
+    <div id="meta-wrap"></div>
+    <div class="card">
+      <div class="sec">Indicadores do dia</div>
+      <div id="num-fields"></div>
+      <!-- Campo valor das vendas — aparece dinamicamente -->
+      <div class="venda-valor-wrap" id="venda-valor-wrap">
+        <div class="venda-valor-title">💰 Valor das vendas realizadas hoje</div>
+        <div id="venda-itens"></div>
+      </div>
+      <button class="btn-main" onclick="enviar()">✓ Enviar lançamento</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAtnfPDfgmaeLsHpwHu0JBZNsbh3bU-KhI",
+  authDomain: "corretores-49f70.firebaseapp.com",
+  projectId: "corretores-49f70",
+  storageBucket: "corretores-49f70.firebasestorage.app",
+  messagingSenderId: "578258292861",
+  appId: "1:578258292861:web:c53e2c640a6bea01546114"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const CAMPOS = [
+  {n:"Ligações",i:"📞"},{n:"Leads",i:"🎯"},{n:"Conversas",i:"💬"},
+  {n:"Agendamentos",i:"📅"},{n:"Visitas",i:"🏠"},{n:"Propostas",i:"📄"},{n:"Vendas",i:"🏆"}
+];
+
+// Build form
+const nf = document.getElementById("num-fields");
+// Build campos form
+CAMPOS.forEach((f,i) => {
+  const row = document.createElement("div");
+  row.className = "num-row";
+  row.innerHTML = `<span class="num-icon">${f.i}</span><span class="num-name">${f.n}</span>`;
+  const inp = document.createElement("input");
+  inp.className = "num-input";
+  inp.type = "number";
+  inp.id = "nv-"+i;
+  inp.value = "0";
+  inp.min = "0";
+  inp.addEventListener("input", function(){
+    if(this.value < 0) this.value = 0;
+    if(i === 6) atualizarCamposVenda();
+  });
+  row.appendChild(inp);
+  nf.appendChild(row);
+});
+
+document.getElementById("f-data").value = new Date().toISOString().slice(0,10);
+
+let CORRETORES = ["Fabio Thomaz","Bruna Sagati","Yuri Volcov","Fernanda Batalhone","Diego Gaspar","Vilma Colaço","Sergio Junior","Lucas Afonso","Sibele Gois"];
+try {
+  const cfgSnap = await getDoc(doc(db,"config","corretores"));
+  if(cfgSnap.exists() && cfgSnap.data().lista && cfgSnap.data().lista.length > 0){
+    CORRETORES = cfgSnap.data().lista;
+  }
+} catch(e){}
+
+const sel = document.getElementById("f-cor");
+CORRETORES.forEach(c => {
+  const opt = document.createElement("option");
+  opt.value = c; opt.textContent = c;
+  sel.appendChild(opt);
+});
+
+document.getElementById("loading").style.display = "none";
+document.getElementById("app").style.display = "block";
+
+// adj not used anymore - inputs are manual
+
+function atualizarCamposVenda(){
+  const qtd = parseInt(document.getElementById("nv-6").value)||0;
+  const wrap = document.getElementById("venda-valor-wrap");
+  const itens = document.getElementById("venda-itens");
+  if(qtd <= 0){ wrap.style.display="none"; itens.innerHTML=""; return; }
+  wrap.style.display = "block";
+  // mantém inputs existentes, adiciona ou remove conforme necessário
+  const atual = itens.querySelectorAll(".venda-item").length;
+  if(qtd > atual){
+    for(let i = atual; i < qtd; i++){
+      itens.innerHTML += `<div class="venda-item">
+        <span class="venda-label">Venda ${i+1}</span>
+        <input class="venda-input" type="number" id="vv-${i}" placeholder="R$ 0" min="0">
+      </div>`;
+    }
+  } else if(qtd < atual){
+    itens.innerHTML = "";
+    for(let i = 0; i < qtd; i++){
+      itens.innerHTML += `<div class="venda-item">
+        <span class="venda-label">Venda ${i+1}</span>
+        <input class="venda-input" type="number" id="vv-${i}" placeholder="R$ 0" min="0">
+      </div>`;
+    }
+  }
+}
+
+function fmtVal(v){
+  if(v >= 1000000) return "R$ " + (v/1000000).toFixed(2).replace('.',',') + "M";
+  if(v >= 1000) return "R$ " + (v/1000).toFixed(0) + "k";
+  return "R$ " + v.toLocaleString("pt-BR",{maximumFractionDigits:0});
+}
+
+window.onCorChange = async () => {
+  const cor = document.getElementById("f-cor").value;
+  const wrap = document.getElementById("meta-wrap");
+  if(!cor){ wrap.innerHTML=""; return; }
+  const snap = await getDocs(query(collection(db,"metas"), where("corretor","==",cor)));
+  if(snap.empty){ wrap.innerHTML=`<div class="meta-empty">⚙️ Meta ainda não configurada. Fale com seu gestor.</div>`; return; }
+  const meta = snap.docs[0].data();
+  const lancSnap = await getDocs(query(collection(db,"lancamentos"), where("corretor","==",cor)));
+  const v = new Array(7).fill(0);
+  let vgv_real = 0;
+  lancSnap.forEach(d => {
+    d.data().valores.forEach((x,i) => v[i]+=x);
+    if(d.data().valores_venda) d.data().valores_venda.forEach(x => vgv_real += x);
+  });
+  const p = (a,b) => b>0 ? Math.min(100,Math.round(a/b*100)) : 0;
+  const cc = (pp) => pp>=80 ? "#66BB6A" : pp>=50 ? "#FFA726" : "#FF7043";
+  const pL=p(v[1],meta.leads_mes), pV=p(v[4],meta.visitas_mes), pVd=p(v[6],meta.vendas_mes);
+  const vgv_meta = meta.comissao/(meta.perc_com/100);
+  const pVgv = p(vgv_real, vgv_meta);
+  const com_real = vgv_real*(meta.perc_com/100);
+  wrap.innerHTML = `<div class="meta-banner">
+    <div class="meta-banner-title">🎯 Sua meta do mês</div>
+    <div class="meta-grid">
+      <div class="meta-item"><div class="meta-item-label">Leads</div><div class="meta-item-val">${v[1]}/${meta.leads_mes}</div><div class="meta-item-pct" style="color:${cc(pL)}">${pL}%</div></div>
+      <div class="meta-item"><div class="meta-item-label">Visitas</div><div class="meta-item-val">${v[4]}/${meta.visitas_mes}</div><div class="meta-item-pct" style="color:${cc(pV)}">${pV}%</div></div>
+      <div class="meta-item"><div class="meta-item-label">Vendas</div><div class="meta-item-val">${v[6]}/${meta.vendas_mes}</div><div class="meta-item-pct" style="color:${cc(pVd)}">${pVd}%</div></div>
+    </div>
+    <div class="meta-prog-wrap">
+      <div class="meta-prog-label">
+        <span>🏆 Comissão</span>
+        <span>${fmtVal(com_real)} / ${fmtVal(meta.comissao)}</span>
+      </div>
+      <div class="meta-prog-track"><div class="meta-prog-fill" style="width:${pVgv}%;background:${cc(pVgv)}"></div></div>
+    </div>
+    <div class="meta-prog-wrap">
+      <div class="meta-prog-label">
+        <span>🏡 VGV</span>
+        <span>${fmtVal(vgv_real)} / ${fmtVal(vgv_meta)}</span>
+      </div>
+      <div class="meta-prog-track"><div class="meta-prog-fill" style="width:${pVgv}%;background:rgba(255,255,255,0.6)"></div></div>
+    </div>
+  </div>`;
+};
+
+window.enviar = async () => {
+  const cor = document.getElementById("f-cor").value;
+  const data = document.getElementById("f-data").value;
+  if(!cor || !data){ showToast("⚠️ Selecione nome e data"); return; }
+  const valores = CAMPOS.map((_,i) => parseInt(document.getElementById("nv-"+i).value)||0);
+  // coleta valores de venda
+  const qtd_vendas = valores[6];
+  const valores_venda = [];
+  for(let i=0; i<qtd_vendas; i++){
+    const el = document.getElementById("vv-"+i);
+    valores_venda.push(el ? parseFloat(el.value)||0 : 0);
+  }
+  await addDoc(collection(db,"lancamentos"), { corretor: cor, data, valores, valores_venda, ts: Date.now() });
+  CAMPOS.forEach((_,i) => document.getElementById("nv-"+i).value="0");
+  document.getElementById("venda-valor-wrap").style.display="none";
+  document.getElementById("venda-itens").innerHTML="";
+  showToast("✅ Lançamento salvo!");
+  window.onCorChange();
+};
+
+window.showToast = (msg) => {
+  const t = document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2800);
+};
+</script>
+</body>
+</html>

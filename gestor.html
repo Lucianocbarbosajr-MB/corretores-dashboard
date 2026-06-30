@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Gestor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--roxo:#4B0082;--roxo2:#7B1FA2;--bg:#F4F0FA;--card:#fff;--border:#E0D7F0;--text:#1A1A2E;--sub:#6B6B8A;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{background:#fff;border-radius:20px;padding:40px 32px;width:100%;max-width:360px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(75,0,130,.12);text-align:center;}
+.login-logo{font-size:40px;margin-bottom:16px;}
+.login-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.login-sub{font-size:14px;color:var(--sub);margin-bottom:28px;}
+.login-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:13px 16px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);margin-bottom:14px;background:#fafafa;}
+.login-btn{width:100%;background:var(--roxo);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.login-err{color:#C62828;font-size:13px;margin-top:10px;display:none;}
+#app{display:none;}
+.topbar{background:var(--roxo);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.topbar-title{color:#fff;font-size:16px;font-weight:600;flex:1;}
+.tb-btn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;}
+.nav-tabs{display:flex;overflow-x:auto;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:90;padding:0 16px;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nt{padding:12px 16px;font-size:13px;color:var(--sub);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;font-weight:500;}
+.nt.active{color:var(--roxo);border-bottom-color:var(--roxo);font-weight:600;}
+.page{padding:16px;max-width:900px;margin:0 auto;}
+.tab{display:none;}.tab.active{display:block;}
+.card{background:var(--card);border-radius:14px;padding:16px 20px;margin-bottom:12px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(75,0,130,.05);}
+.sec{font-size:11px;font-weight:600;color:var(--roxo2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.mbox{background:#F8F5FF;border-radius:10px;padding:10px 6px;text-align:center;}
+.mlabel{font-size:10px;color:var(--sub);margin-bottom:3px;}
+.mval{font-size:18px;font-weight:700;color:var(--text);}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+.funnel-row{margin-bottom:9px;}
+.fhd{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:3px;}
+.ftrack{background:#F0EBF8;border-radius:6px;height:18px;overflow:hidden;}
+.ffill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:600;color:#fff;min-width:24px;}
+.badge{display:inline-block;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;}
+.bg{background:#E8F5E9;color:#2E7D32;}.br{background:#FFEBEE;color:#C62828;}.ba{background:#FFF8E1;color:#F57F17;}
+.divider{border:none;border-top:1px solid #F0EBF8;margin:12px 0;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#F8F5FF;color:var(--sub);font-weight:600;padding:8px 7px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;}
+th.l{text-align:left;}td{padding:7px;border-bottom:1px solid #F8F5FF;text-align:center;color:var(--text);}
+td.l{text-align:left;}tr:last-child td{border-bottom:none;}
+.progress-bar{background:#F0EBF8;border-radius:4px;height:7px;overflow:hidden;margin-top:4px;}
+.progress-fill{height:100%;border-radius:4px;}
+.rec-box{background:#F8F5FF;border-radius:10px;padding:12px 14px;font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:8px;}
+.rec-box strong{color:var(--text);font-weight:600;}
+.fi{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;background:#fafafa;color:var(--text);margin-bottom:10px;}
+select.fi{appearance:none;}
+.textarea-fi{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fafafa;color:var(--text);resize:vertical;min-height:70px;margin-bottom:10px;}
+.btn-main{width:100%;background:var(--roxo);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px;}
+.btn-sec{background:#F8F5FF;color:var(--roxo);border:1px solid #E0D7F0;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;cursor:pointer;}
+.meta-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.meta-label{font-size:13px;color:var(--sub);flex:1;}
+.meta-input{width:110px;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'DM Mono',monospace;background:#fafafa;color:var(--text);text-align:center;}
+.rank-1{background:linear-gradient(90deg,#FFF8E1,#fff);}
+.rank-2{background:linear-gradient(90deg,#F5F5F5,#fff);}
+.rank-3{background:linear-gradient(90deg,#FBE9E7,#fff);}
+.diag-subtabs{display:flex;gap:6px;padding:14px 0;overflow-x:auto;}
+.diag-subtabs::-webkit-scrollbar{display:none;}
+.dst{padding:7px 14px;font-size:12px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;white-space:nowrap;color:var(--sub);background:#fff;font-weight:500;}
+.dst.active{background:var(--roxo);color:#fff;border-color:var(--roxo);}
+.dtab{display:none;}.dtab.active{display:block;}
+.status-pill{display:inline-block;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;}
+.sp-green{background:#E8F5E9;color:#2E7D32;}.sp-red{background:#FFEBEE;color:#C62828;}.sp-amber{background:#FFF8E1;color:#F57F17;}
+.cor-list-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F0EBF8;}
+.cor-list-item:last-child{border-bottom:none;}
+.cor-list-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-right:10px;}
+.btn-del{background:#FFEBEE;color:#C62828;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;}
+.add-cor-wrap{display:flex;gap:8px;margin-top:12px;}
+.add-cor-input{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;background:#fafafa;color:var(--text);}
+.btn-add{background:var(--roxo);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.chart-wrap{position:relative;width:100%;height:260px;margin-top:8px;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#2E7D32;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:500;transition:transform .3s;z-index:999;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.loading{text-align:center;padding:40px;color:var(--sub);}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--roxo);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">🏠</div>
+      <div class="login-title">Painel do Gestor</div>
+      <div class="login-sub">Acesso restrito — insira a senha</div>
+      <input type="password" class="login-input" id="senha" placeholder="Senha" onkeydown="if(event.key==='Enter')fazerLogin()">
+      <button class="login-btn" onclick="fazerLogin()">Entrar</button>
+      <div class="login-err" id="login-err">Senha incorreta.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <span class="topbar-title">📊 Dashboard — Gestor</span>
+    <select id="sel-mes" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif" onchange="filtrarMes(this.value)">
+      <option value="">Todos os meses</option>
+    </select>
+    <button class="tb-btn" onclick="location.reload()">Sair</button>
+  </div>
+  <div class="nav-tabs">
+    <div class="nt active" onclick="mudarAba('visao-geral',this)">🏠 Visão Geral</div>
+    <div class="nt" onclick="mudarAba('metas',this)">🎯 Metas</div>
+    <div class="nt" onclick="mudarAba('diagnostico',this)">🩺 Diagnóstico</div>
+    <div class="nt" onclick="mudarAba('gestao',this)">⚙️ Gestão</div>
+  </div>
+  <div class="page">
+    <div id="tab-visao-geral" class="tab active"><div class="loading"><div class="spinner"></div>Carregando...</div></div>
+    <div id="tab-metas" class="tab"></div>
+    <div id="tab-diagnostico" class="tab"></div>
+    <div id="tab-gestao" class="tab"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── LOGIN (global, fora do module) ───────────────────────────
+function fazerLogin(){
+  const senha = document.getElementById("senha").value;
+  if(senha === "1234"){
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    // Aguarda o módulo Firebase estar pronto
+    let t = 0;
+    const wait = setInterval(()=>{
+      t += 100;
+      if(window.APP_READY){
+        clearInterval(wait);
+        window.APP_READY();
+      } else if(t > 8000){
+        clearInterval(wait);
+        document.getElementById("tab-visao-geral").innerHTML = "<div class='card' style='margin-top:16px'><p style='color:red'>Erro de conexão. Verifique sua internet e recarregue.</p></div>";
+      }
+    }, 100);
+  } else {
+    document.getElementById("login-err").style.display = "block";
+  }
+}
+
+let MES_FILTRO = "";
+function filtrarMes(mes){
+  MES_FILTRO = mes;
+  const aba = document.querySelector(".nt.active");
+  if(aba) aba.click();
+}
+function mudarAba(nome, el){
+  document.querySelectorAll(".nt").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("tab-"+nome).classList.add("active");
+  if(window.RENDER) window.RENDER(nome);
+}
+
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2800);
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, setDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const fb = initializeApp({
+  apiKey:"AIzaSyAtnfPDfgmaeLsHpwHu0JBZNsbh3bU-KhI",
+  authDomain:"corretores-49f70.firebaseapp.com",
+  projectId:"corretores-49f70",
+  storageBucket:"corretores-49f70.firebasestorage.app",
+  messagingSenderId:"578258292861",
+  appId:"1:578258292861:web:c53e2c640a6bea01546114"
+});
+const db = getFirestore(fb);
+
+const CAMPOS = ["Ligações","Leads","Conversas","Agendamentos","Visitas","Propostas","Vendas"];
+const AVATAR_CORES = ["#7B1FA2","#0277BD","#2E7D32","#C62828","#E65100","#00838F","#558B2F","#6A1B9A","#283593"];
+let CORRETORES = ["Fabio Thomaz","Bruna Sagati","Yuri Volcov","Fernanda Batalhone","Diego Gaspar","Vilma Colaço","Sergio Junior","Lucas Afonso","Sibele Gois"];
+let DADOS=[], METAS={}, REUNIOES=[], META_EQUIPE={}, VGV_REAL={};
+let chartLeads=null, chartVisitas=null;
+
+function pct(a,b){return b>0?Math.round(a/b*100):0;}
+function cc(p){return p>=80?"#2E7D32":p>=50?"#F57F17":"#C62828";}
+function ini(n){const p=n.trim().split(" ");return p.length>=2?p[0][0]+p[p.length-1][0]:n.slice(0,2).toUpperCase();}
+function fmtM(v){return v>=1000000?"R$ "+(v/1000000).toFixed(2).replace(".",","+"M"):v>=1000?"R$ "+(v/1000).toFixed(0)+"k":"R$ "+Math.round(v);}
+
+function dadosFiltrados(){
+  if(!MES_FILTRO) return DADOS;
+  return DADOS.filter(r=>r.data&&r.data.startsWith(MES_FILTRO));
+}
+
+function getAcum(){
+  const t={};CORRETORES.forEach(c=>t[c]=new Array(7).fill(0));
+  dadosFiltrados().forEach(r=>{if(t[r.corretor])r.valores.forEach((v,i)=>t[r.corretor][i]+=v);});
+  return t;
+}
+function rankScore(v){return v[6]*1e12+v[5]*1e10+v[4]*1e8+v[3]*1e6+v[2]*1e4+v[1]*1e2+v[0];}
+function rankCrit(v){if(v[6]>0)return v[6]+" venda"+(v[6]>1?"s":"");if(v[5]>0)return v[5]+" prop.";if(v[4]>0)return v[4]+" visita"+(v[4]>1?"s":"");if(v[3]>0)return v[3]+" agend.";if(v[2]>0)return v[2]+" conv.";if(v[1]>0)return v[1]+" leads";return v[0]+" lig.";}
+
+// ── VISÃO GERAL ───────────────────────────────────────────────
+function renderVisaoGeral(){
+  const ac=getAcum(), T=new Array(7).fill(0);
+  CORRETORES.forEach(c=>ac[c].forEach((v,i)=>T[i]+=v));
+
+  // Diário
+  const todasDatas=[...new Set(dadosFiltrados().map(r=>r.data))].sort().reverse();
+  const hojeStr=new Date().toISOString().slice(0,10);
+  const selOpts=todasDatas.map(d=>`<option value="${d}"${d===hojeStr?" selected":""}>${d.split("-").reverse().join("/")}</option>`).join("");
+
+  function tabelaDia(data){
+    let rows="",tem=false;
+    CORRETORES.forEach(c=>{
+      const regs=dadosFiltrados().filter(r=>r.corretor===c&&r.data===data);
+      if(regs.length){
+        tem=true;
+        const v=new Array(7).fill(0);
+        regs.forEach(r=>r.valores.forEach((x,i)=>v[i]+=x));
+        rows+=`<tr><td class="l" style="font-weight:600">${c.split(" ")[0]}</td>${v.map(x=>`<td>${x||"—"}</td>`).join("")}</tr>`;
+      } else {
+        rows+=`<tr style="opacity:.35"><td class="l">${c.split(" ")[0]}</td>${new Array(7).fill("<td>—</td>").join("")}</tr>`;
+      }
+    });
+    if(!tem) return `<p style="color:var(--sub);font-size:13px;padding:8px 0">Nenhum lançamento nesta data.</p>`;
+    return `<div style="overflow-x:auto"><table><thead><tr><th class="l">Corretor</th><th>Lig</th><th>Lead</th><th>Conv</th><th>Ag</th><th>Vis</th><th>Prop</th><th>Vend</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  const diarioCard=`<div class="card" style="margin-top:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sec" style="margin-bottom:0">📅 Lançamentos do dia</div>
+      <select style="border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;background:#fafafa;color:var(--text);font-family:'DM Sans',sans-serif" onchange="document.getElementById('diario-content').innerHTML=window.TABELADIA(this.value)">
+        ${todasDatas.length?selOpts:'<option>Sem dados</option>'}
+      </select>
+    </div>
+    <div id="diario-content">${todasDatas.length?tabelaDia(hojeStr):'<p style="color:var(--sub);font-size:13px">Nenhum lançamento ainda.</p>'}</div>
+  </div>`;
+
+  window.TABELADIA = tabelaDia;
+
+  // Funil
+  const etapas=[["Ligações → Leads",T[0],T[1],"#7B1FA2"],["Leads → Conversas",T[1],T[2],"#AB47BC"],["Conversas → Agend.",T[2],T[3],"#F57C00"],["Agend. → Visitas",T[3],T[4],"#388E3C"],["Visitas → Propostas",T[4],T[5],"#E65100"],["Propostas → Vendas",T[5],T[6],"#2E7D32"]];
+  let funil=`<div class="card"><div class="metric-grid">${CAMPOS.map((f,i)=>`<div class="mbox"><div class="mlabel">${f}</div><div class="mval">${T[i]}</div></div>`).join("")}</div><div class="divider"></div><div class="sec">Taxas de conversão</div>`;
+  etapas.forEach(([l,de,para,cor])=>{const p=pct(para,de),w=Math.max(p,2);funil+=`<div class="funnel-row"><div class="fhd"><span>${l}${p<20&&de>0?" ⚠️":""}</span><span>${de}→${para} <b>${p}%</b></span></div><div class="ftrack"><div class="ffill" style="width:${w}%;background:${cor}">${p}%</div></div></div>`;});
+  funil+=`</div>`;
+
+  // Ranking
+  const sorted=[...CORRETORES].sort((a,b)=>rankScore(ac[b])-rankScore(ac[a]));
+  const medals=["🥇","🥈","🥉"];
+  let rank=`<div class="card"><div class="sec">Ranking</div><div style="overflow-x:auto"><table><thead><tr><th class="l">Corretor</th><th>Lig</th><th>Lead</th><th>Conv</th><th>Ag</th><th>Vis</th><th>Prop</th><th>Vend</th><th>Critério</th></tr></thead><tbody>`;
+  sorted.forEach((c,i)=>{const v=ac[c];rank+=`<tr${i<3?` class="rank-${i+1}"`:""}><td class="l">${medals[i]||i+1} ${c.split(" ")[0]}</td><td>${v[0]}</td><td>${v[1]}</td><td>${v[2]}</td><td>${v[3]}</td><td>${v[4]}</td><td>${v[5]}</td><td><b>${v[6]}</b></td><td><span class="badge ${i===0?"bg":i<3?"ba":"br"}">${rankCrit(v)}</span></td></tr>`;});
+  rank+=`<tr style="font-weight:700;background:#F8F5FF"><td class="l">Total</td>${T.map(v=>`<td>${v}</td>`).join("")}<td></td></tr></tbody></table></div></div>`;
+
+  // Presença
+  const dp=[...new Set(dadosFiltrados().map(r=>r.data))].sort().slice(-6);
+  let pres="";
+  if(dp.length){
+    let rows=CORRETORES.map(c=>{const cells=dp.map(dt=>`<td>${dadosFiltrados().some(r=>r.corretor===c&&r.data===dt)?"✅":"❌"}</td>`).join("");const tot=dp.filter(dt=>dadosFiltrados().some(r=>r.corretor===c&&r.data===dt)).length;const cl=tot===dp.length?"bg":tot===0?"br":"ba";return`<tr><td class="l">${c.split(" ")[0]}</td>${cells}<td><span class="badge ${cl}">${tot}/${dp.length}</span></td></tr>`;}).join("");
+    pres=`<div class="card"><div class="sec">Presença</div><div style="overflow-x:auto"><table><thead><tr><th class="l">Corretor</th>${dp.map(d=>`<th>${d.slice(5).replace("-","/")}</th>`).join("")}<th>Total</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+
+  document.getElementById("tab-visao-geral").innerHTML = diarioCard + funil + rank + pres;
+}
+
+// ── METAS ─────────────────────────────────────────────────────
+function renderMetas(){
+  const ac=getAcum();
+  const vgv_total=dadosFiltrados().reduce((s,r)=>s+(r.valores_venda?r.valores_venda.reduce((a,b)=>a+b,0):0),0);
+  const m=META_EQUIPE;
+  const hasM=m&&m.vendas_mes;
+
+  // Meta equipe
+  let meHtml="";
+  if(hasM){
+    const vgv_meta=m.comissao/(m.perc_com/100), com_real=vgv_total*(m.perc_com/100);
+    const T=new Array(7).fill(0);CORRETORES.forEach(c=>ac[c].forEach((v,i)=>T[i]+=v));
+    meHtml=[["🎯 Leads",T[1],m.leads_mes],["🏠 Visitas",T[4],m.visitas_mes],["🏆 Vendas",T[6],m.vendas_mes],["🏡 VGV",vgv_total,vgv_meta,true],["💰 Comissão",com_real,m.comissao,true]]
+      .map(([n,r,mt,money])=>{const p=pct(r,mt);return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:3px"><span>${n}</span><span style="color:${cc(p)};font-weight:600">${money?fmtM(r):r} / ${money?fmtM(mt):mt} · ${p}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${cc(p)}"></div></div></div>`;}).join("");
+  }
+
+  // Meta individual
+  const miHtml=CORRETORES.map(c=>{
+    const mi=METAS[c],v=ac[c];
+    if(!mi||!mi.vendas_mes) return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F0EBF8"><span style="font-size:13px;font-weight:500">${c.split(" ")[0]}</span><button class="btn-sec" style="font-size:11px;padding:4px 10px" onclick="editarMeta('${c}')">✏️ Editar</button></div>`;
+    const p=pct(v[6],mi.vendas_mes);
+    return `<div style="padding:9px 0;border-bottom:1px solid #F0EBF8"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:13px;font-weight:500">${c.split(" ")[0]}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;color:var(--sub)">${v[6]}/${mi.vendas_mes} vendas</span><span class="status-pill ${p>=80?"sp-green":p>=50?"sp-amber":"sp-red"}">${p}%</span><button class="btn-sec" style="font-size:10px;padding:2px 7px" onclick="editarMeta('${c}')">✏️</button></div></div><div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${cc(p)}"></div></div></div>`;
+  }).join("");
+
+  // Semanas do mês
+  const hoje=new Date(), ul=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
+  let nSem=0;for(let d=1;d<=ul;d++)if(new Date(hoje.getFullYear(),hoje.getMonth(),d).getDay()===1)nSem++;
+  if(!nSem)nSem=4;
+  const mLeadsSem=hasM?Math.round(m.leads_mes/nSem):null;
+  const mVisSem=hasM?Math.round(m.visitas_mes/nSem):null;
+
+  // Semanas data
+  const semMap={};
+  dadosFiltrados().forEach(r=>{
+    const d=new Date(r.data+"T00:00:00"),dow=d.getDay()===0?6:d.getDay()-1;
+    const seg=new Date(d);seg.setDate(d.getDate()-dow);
+    const key=seg.toISOString().slice(0,10);
+    const fmt=dt=>String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0");
+    const sab=new Date(seg);sab.setDate(seg.getDate()+6);
+    if(!semMap[key])semMap[key]={label:fmt(seg)+"–"+fmt(sab),leads:0,visitas:0};
+    semMap[key].leads+=r.valores[1]||0;
+    semMap[key].visitas+=r.valores[4]||0;
+  });
+  const sems=Object.entries(semMap).sort((a,b)=>a[0].localeCompare(b[0])).slice(-8).map(e=>e[1]);
+  const labels=sems.map(s=>s.label);
+
+  document.getElementById("tab-metas").innerHTML=`
+    <div class="card" style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="sec" style="margin-bottom:0">Meta da equipe</div>
+        <button class="btn-sec" style="font-size:11px;padding:4px 10px" onclick="editarMetaEquipe()">✏️ Editar</button>
+      </div>
+      ${hasM?meHtml:'<div class="rec-box">Meta da equipe não configurada.</div>'}
+    </div>
+    <div class="card"><div class="sec">Metas individuais</div>${miHtml}</div>
+    <div class="card"><div class="sec">Novos leads por semana</div><div class="chart-wrap"><canvas id="ch-leads"></canvas></div></div>
+    <div class="card"><div class="sec">Visitas realizadas por semana</div><div class="chart-wrap"><canvas id="ch-vis"></canvas></div></div>`;
+
+  setTimeout(()=>{
+    if(chartLeads)chartLeads.destroy();
+    if(chartVisitas)chartVisitas.destroy();
+    const metaLine=(val,label)=>val?[{type:"line",label:`${label} (${val}/sem)`,data:sems.map(()=>val),borderColor:"#C62828",borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false,tension:0,order:1}]:[];
+    chartLeads=new Chart(document.getElementById("ch-leads"),{type:"bar",data:{labels,datasets:[{label:"Leads",data:sems.map(s=>s.leads),backgroundColor:"#AB47BC99",borderColor:"#7B1FA2",borderWidth:2,borderRadius:6,order:2},...metaLine(mLeadsSem,"Meta")]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true},x:{ticks:{font:{size:10}}}}}});
+    chartVisitas=new Chart(document.getElementById("ch-vis"),{type:"bar",data:{labels,datasets:[{label:"Visitas",data:sems.map(s=>s.visitas),backgroundColor:"#66BB6A99",borderColor:"#2E7D32",borderWidth:2,borderRadius:6,order:2},...metaLine(mVisSem,"Meta")]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true},x:{ticks:{font:{size:10}}}}}});
+  },50);
+}
+
+window.editarMetaEquipe = ()=>{
+  const m=META_EQUIPE||{comissao:100000,perc_com:1.4,ticket:600000,visitas_venda:8,atend_visita:5,leads_atend:3};
+  document.getElementById("tab-metas").innerHTML=`<div class="card" style="margin-top:14px"><div class="sec">Meta da equipe</div>
+    <div style="background:#FFFDE7;border-radius:10px;padding:14px;margin-bottom:12px">
+      <div class="meta-row"><span class="meta-label">🎯 Comissão objetivo (R$)</span><input class="meta-input" type="number" id="me-com" value="${m.comissao}" oninput="calcME()"></div>
+      <div class="meta-row"><span class="meta-label">% Comissão efetiva</span><input class="meta-input" type="number" id="me-pcom" value="${m.perc_com}" step="0.1" oninput="calcME()"></div>
+      <div class="meta-row"><span class="meta-label">🏷️ Ticket médio (R$)</span><input class="meta-input" type="number" id="me-tick" value="${m.ticket}" oninput="calcME()"></div>
+      <div class="meta-row"><span class="meta-label">🏠 Visitas por venda</span><input class="meta-input" type="number" id="me-vpv" value="${m.visitas_venda}" oninput="calcME()"></div>
+      <div class="meta-row"><span class="meta-label">💬 Atend. por visita</span><input class="meta-input" type="number" id="me-apv" value="${m.atend_visita}" oninput="calcME()"></div>
+      <div class="meta-row"><span class="meta-label">🎯 Leads por atend.</span><input class="meta-input" type="number" id="me-lpa" value="${m.leads_atend}" oninput="calcME()"></div>
+    </div>
+    <div style="background:#E8F5E9;border-radius:10px;padding:14px;margin-bottom:12px" id="me-res"></div>
+    <button class="btn-main" onclick="salvarME()">Salvar</button>
+    <button class="btn-sec" style="width:100%;margin-top:8px" onclick="renderMetas()">Cancelar</button>
+  </div>`;
+  calcME();
+};
+
+window.calcME=()=>{
+  const com=+document.getElementById("me-com").value||0,pcom=+document.getElementById("me-pcom").value||1.4,tick=+document.getElementById("me-tick").value||1,vpv=+document.getElementById("me-vpv").value||1,apv=+document.getElementById("me-apv").value||1,lpa=+document.getElementById("me-lpa").value||1;
+  const vgv=com/(pcom/100),vend=vgv/tick,vis=vend*vpv,at=vis*apv,ld=at*lpa;
+  const hoje=new Date(),ul=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
+  let ns=0;for(let d=1;d<=ul;d++)if(new Date(hoje.getFullYear(),hoje.getMonth(),d).getDay()===1)ns++;
+  if(!ns)ns=4;
+  document.getElementById("me-res").innerHTML=`<div class="sec" style="margin-bottom:10px">Metas desdobradas</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+      ${[["VGV",fmtM(vgv)],["Vendas",vend.toFixed(1)],["Visitas",Math.ceil(vis)],["Atend.",Math.ceil(at)],["Leads",Math.ceil(ld)]].map(([n,v])=>`<div style="background:#fff;border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--sub);margin-bottom:3px">${n}</div><div style="font-size:16px;font-weight:700;color:var(--roxo)">${v}</div><div style="font-size:10px;color:var(--sub)">${n!=="VGV"&&n!=="Leads"?`${(+String(v).replace(",",".")/ns).toFixed(1)}/sem`:n==="Leads"?`${Math.ceil(ld/ns)}/sem`:""}</div></div>`).join("")}
+    </div>`;
+};
+
+window.salvarME=async()=>{
+  const m={comissao:+document.getElementById("me-com").value,perc_com:+document.getElementById("me-pcom").value,ticket:+document.getElementById("me-tick").value,visitas_venda:+document.getElementById("me-vpv").value,atend_visita:+document.getElementById("me-apv").value,leads_atend:+document.getElementById("me-lpa").value};
+  m.vendas_mes=Math.ceil((m.comissao/(m.perc_com/100))/m.ticket);m.visitas_mes=Math.ceil(m.vendas_mes*m.visitas_venda);m.leads_mes=Math.ceil(m.visitas_mes*m.atend_visita*m.leads_atend);
+  await setDoc(doc(db,"config","meta_equipe"),m);META_EQUIPE=m;showToast("✅ Meta salva!");renderMetas();
+};
+
+window.editarMeta=(cor)=>{
+  const m=METAS[cor]||{comissao:23500,perc_com:1.4,ticket:600000,visitas_venda:8,atend_visita:5,leads_atend:3};
+  document.getElementById("tab-metas").innerHTML=`<div class="card" style="margin-top:14px"><div class="sec">Metas — ${cor.split(" ")[0]}</div>
+    <div style="background:#FFFDE7;border-radius:10px;padding:14px;margin-bottom:12px">
+      <div class="meta-row"><span class="meta-label">🎯 Comissão objetivo (R$)</span><input class="meta-input" type="number" id="m-com" value="${m.comissao}" oninput="calcM()"></div>
+      <div class="meta-row"><span class="meta-label">% Comissão efetiva</span><input class="meta-input" type="number" id="m-pcom" value="${m.perc_com}" step="0.1" oninput="calcM()"></div>
+      <div class="meta-row"><span class="meta-label">🏷️ Ticket médio (R$)</span><input class="meta-input" type="number" id="m-tick" value="${m.ticket}" oninput="calcM()"></div>
+      <div class="meta-row"><span class="meta-label">🏠 Visitas por venda</span><input class="meta-input" type="number" id="m-vpv" value="${m.visitas_venda}" oninput="calcM()"></div>
+      <div class="meta-row"><span class="meta-label">💬 Atend. por visita</span><input class="meta-input" type="number" id="m-apv" value="${m.atend_visita}" oninput="calcM()"></div>
+      <div class="meta-row"><span class="meta-label">🎯 Leads por atend.</span><input class="meta-input" type="number" id="m-lpa" value="${m.leads_atend}" oninput="calcM()"></div>
+    </div>
+    <div style="background:#E8F5E9;border-radius:10px;padding:14px;margin-bottom:12px" id="m-res"></div>
+    <button class="btn-main" onclick="salvarMeta('${cor}')">Salvar</button>
+    <button class="btn-sec" style="width:100%;margin-top:8px" onclick="renderMetas()">Cancelar</button>
+  </div>`;
+  calcM();
+};
+window.calcM=()=>{
+  const com=+document.getElementById("m-com").value||0,pcom=+document.getElementById("m-pcom").value||1.4,tick=+document.getElementById("m-tick").value||1,vpv=+document.getElementById("m-vpv").value||1,apv=+document.getElementById("m-apv").value||1,lpa=+document.getElementById("m-lpa").value||1;
+  const vgv=com/(pcom/100),vend=vgv/tick,vis=vend*vpv,at=vis*apv,ld=at*lpa;
+  document.getElementById("m-res").innerHTML=`<div class="sec" style="margin-bottom:8px">Metas calculadas</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">${[["VGV",fmtM(vgv)],["Vendas",vend.toFixed(1)],["Visitas",Math.ceil(vis)],["Atend.",Math.ceil(at)],["Leads",Math.ceil(ld)]].map(([n,v])=>`<div style="background:#fff;border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--sub)">${n}</div><div style="font-size:15px;font-weight:700;color:var(--roxo)">${v}</div></div>`).join("")}</div>`;
+};
+window.salvarMeta=async(cor)=>{
+  const m={corretor:cor,comissao:+document.getElementById("m-com").value,perc_com:+document.getElementById("m-pcom").value,ticket:+document.getElementById("m-tick").value,visitas_venda:+document.getElementById("m-vpv").value,atend_visita:+document.getElementById("m-apv").value,leads_atend:+document.getElementById("m-lpa").value};
+  m.vendas_mes=Math.ceil((m.comissao/(m.perc_com/100))/m.ticket);m.visitas_mes=Math.ceil(m.vendas_mes*m.visitas_venda);m.leads_mes=Math.ceil(m.visitas_mes*m.atend_visita*m.leads_atend);
+  await setDoc(doc(db,"metas",cor.replace(/ /g,"_")),m);METAS[cor]=m;showToast("✅ Meta salva!");renderMetas();
+};
+
+// ── DIAGNÓSTICO ───────────────────────────────────────────────
+function renderDiag(){
+  const ac=getAcum(),T=new Array(7).fill(0);
+  CORRETORES.forEach(c=>ac[c].forEach((v,i)=>T[i]+=v));
+  const ausentes=CORRETORES.filter(c=>ac[c][0]===0);
+
+  function funil(v,cor){
+    return [["Lig→Lead",v[0],v[1],"#7B1FA2"],["Lead→Conv",v[1],v[2],"#AB47BC"],["Conv→Agend",v[2],v[3],"#F57C00"],["Agend→Vis",v[3],v[4],"#388E3C"],["Vis→Prop",v[4],v[5],"#E65100"],["Prop→Vend",v[5],v[6],"#2E7D32"]]
+      .map(([l,de,para,c])=>{const p=pct(para,de),w=Math.max(p,2);return`<div class="funnel-row"><div class="fhd"><span>${l}</span><span>${de}→${para} <b>${p}%</b></span></div><div class="ftrack"><div class="ffill" style="width:${w}%;background:${c}">${p}%</div></div></div>`;}).join("");
+  }
+  function gargalo(v){
+    let g="";
+    if(v[0]===0)return`<div class="rec-box">⚠️ Sem dados lançados.</div>`;
+    if(pct(v[3],v[2])<25)g+=`<div class="rec-box"><strong>🔴 Conv→Agend (${pct(v[3],v[2])}%)</strong><br>Script: "Você tem disponibilidade quarta ou quinta?"</div>`;
+    if(pct(v[4],v[3])<60&&v[3]>0)g+=`<div class="rec-box"><strong>🔴 Agend→Visitas (${pct(v[4],v[3])}%)</strong><br>Protocolo: confirmar 24h antes + manhã do dia.</div>`;
+    if(pct(v[5],v[4])<50&&v[4]>0)g+=`<div class="rec-box"><strong>🟡 Vis→Propostas (${pct(v[5],v[4])}%)</strong><br>Regra: sair com proposta, nova data ou motivo do não.</div>`;
+    return g||`<div class="rec-box" style="color:#2E7D32">✅ Funil equilibrado.</div>`;
+  }
+
+  let subtabs=`<div class="diag-subtabs"><div class="dst active" onclick="dTab('geral',this)">🏢 Equipe</div>`;
+  CORRETORES.forEach(c=>subtabs+=`<div class="dst" onclick="dTab('${c.replace(/ /g,"_")}',this)">${c.split(" ")[0]}</div>`);
+  subtabs+=`</div>`;
+
+  let geralHtml=`<div class="dtab active" id="dtab-geral">
+    <div class="card"><div class="sec">Funil geral</div>${funil(T)}</div>
+    <div class="card"><div class="sec">Gargalos</div>${gargalo(T)}${ausentes.length?`<div class="rec-box"><strong>⚠️ Sem registro:</strong> ${ausentes.join(", ")}</div>`:""}</div>
+    <div class="card"><div class="sec">Ações prioritárias</div>
+      <div class="rec-box"><strong>1.</strong> Fechar data dentro da conversa qualificada</div>
+      <div class="rec-box"><strong>2.</strong> Confirmar visita 24h antes + manhã do dia</div>
+      <div class="rec-box"><strong>3.</strong> Sair de toda visita com proposta ou compromisso</div>
+    </div>
+  </div>`;
+
+  let indHtml=CORRETORES.map(c=>{
+    const v=ac[c],mi=METAS[c],idx=CORRETORES.indexOf(c);
+    const bg=AVATAR_CORES[idx%AVATAR_CORES.length];
+    let metaP="";
+    if(mi&&mi.vendas_mes){
+      metaP=`<div class="card"><div class="sec">Meta</div>${[["Leads",v[1],mi.leads_mes],["Visitas",v[4],mi.visitas_mes],["Vendas",v[6],mi.vendas_mes]].map(([n,r,mt])=>{const p=pct(r,mt);return`<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:3px"><span>${n}</span><span style="color:${cc(p)};font-weight:600">${r}/${mt} · ${p}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${cc(p)}"></div></div></div>`;}).join("")}</div>`;
+    }
+    return`<div class="dtab" id="dtab-${c.replace(/ /g,"_")}">
+      <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${ini(c)}</div><div><div style="font-size:15px;font-weight:600;color:var(--text)">${c}</div><div style="font-size:12px;color:var(--sub)">Diagnóstico individual</div></div></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">${CAMPOS.map((f,i)=>`<div class="mbox"><div class="mlabel">${f}</div><div class="mval" style="font-size:15px">${v[i]}</div></div>`).join("")}</div>
+      <div class="divider"></div><div class="sec">Funil</div>${funil(v)}</div>
+      <div class="card"><div class="sec">Gargalos</div>${gargalo(v)}</div>
+      ${metaP}
+    </div>`;
+  }).join("");
+
+  document.getElementById("tab-diagnostico").innerHTML = subtabs + geralHtml + indHtml;
+
+  window.dTab=(nome,el)=>{
+    document.querySelectorAll(".dst").forEach(t=>t.classList.remove("active"));el.classList.add("active");
+    document.querySelectorAll(".dtab").forEach(t=>t.classList.remove("active"));
+    document.getElementById("dtab-"+nome).classList.add("active");
+  };
+}
+
+// ── GESTÃO ────────────────────────────────────────────────────
+function renderGestao(){
+  document.getElementById("tab-gestao").innerHTML=`
+    <div style="display:flex;gap:8px;padding:14px 0"><button class="btn-main" style="flex:1;padding:10px;font-size:13px" onclick="showSec('1x1')">💬 Reuniões 1x1</button><button class="btn-sec" style="flex:1;padding:10px;font-size:13px" onclick="showSec('cfg')">⚙️ Corretores</button></div>
+    <div id="gestao-sec"></div>`;
+  showSec("1x1");
+}
+
+window.showSec=(s)=>{
+  const el=document.getElementById("gestao-sec");
+  if(s==="1x1"){
+    let hist=REUNIOES.length?`<div class="card"><div class="sec">Histórico</div>${REUNIOES.map(r=>`<div style="padding:10px 0;border-bottom:1px solid #F0EBF8"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px;font-weight:600">${r.corretor.split(" ")[0]}</span><span style="font-size:11px;color:var(--sub)">${r.data}</span></div>${r.forte?`<div style="font-size:11px;color:var(--sub);margin-bottom:3px">⭐ <b style="color:var(--text)">Fortes:</b> ${r.forte}</div>`:""}${r.melhoria?`<div style="font-size:11px;color:var(--sub);margin-bottom:3px">📈 <b style="color:var(--text)">Melhoria:</b> ${r.melhoria}</div>`:""}${r.comp?`<div style="font-size:11px;color:var(--sub);margin-bottom:3px">✅ <b style="color:var(--text)">Compromissos:</b> ${r.comp}</div>`:""}${r.obs?`<div style="font-size:11px;color:var(--sub)">💬 ${r.obs}</div>`:""}</div>`).join("")}</div>`:"";
+    el.innerHTML=`<div class="card"><div class="sec">Nova reunião 1x1</div>
+      <select class="fi" id="r-cor"><option value="">Selecione...</option>${CORRETORES.map(c=>`<option>${c}</option>`).join("")}</select>
+      <input type="date" class="fi" id="r-data">
+      <label style="font-size:12px;color:var(--sub);display:block;margin-bottom:5px">⭐ Pontos fortes</label><textarea class="textarea-fi" id="r-forte" placeholder="O que está indo bem..."></textarea>
+      <label style="font-size:12px;color:var(--sub);display:block;margin-bottom:5px">📈 Melhorias</label><textarea class="textarea-fi" id="r-mel" placeholder="O que precisa melhorar..."></textarea>
+      <label style="font-size:12px;color:var(--sub);display:block;margin-bottom:5px">✅ Compromissos</label><textarea class="textarea-fi" id="r-comp" placeholder="Metas e ações acordadas..."></textarea>
+      <label style="font-size:12px;color:var(--sub);display:block;margin-bottom:5px">💬 Observações</label><textarea class="textarea-fi" id="r-obs" placeholder="Outras observações..."></textarea>
+      <button class="btn-main" onclick="salvar1x1()">Salvar reunião</button></div>${hist}`;
+    document.getElementById("r-data").value=new Date().toISOString().slice(0,10);
+  } else {
+    const listHtml=CORRETORES.map((c,i)=>`<div class="cor-list-item"><div style="display:flex;align-items:center"><div class="cor-list-avatar" style="background:${AVATAR_CORES[i%AVATAR_CORES.length]}">${ini(c)}</div><span style="font-size:14px;font-weight:500">${c}</span></div><button class="btn-del" onclick="remCor('${c}')">✕</button></div>`).join("");
+    el.innerHTML=`<div class="card"><div class="sec">Corretores (${CORRETORES.length})</div>${listHtml}<div class="add-cor-wrap"><input class="add-cor-input" type="text" id="novo-cor" placeholder="Nome completo..."><button class="btn-add" onclick="addCor()">+ Adicionar</button></div></div>`;
+  }
+};
+
+window.salvar1x1=async()=>{
+  const cor=document.getElementById("r-cor").value,data=document.getElementById("r-data").value;
+  if(!cor||!data){showToast("⚠️ Selecione corretor e data");return;}
+  const r={corretor:cor,data,forte:document.getElementById("r-forte").value,melhoria:document.getElementById("r-mel").value,comp:document.getElementById("r-comp").value,obs:document.getElementById("r-obs").value,ts:Date.now()};
+  const ref=await addDoc(collection(db,"reunioes"),r);REUNIOES.unshift({id:ref.id,...r});showToast("✅ Reunião salva!");renderGestao();
+};
+window.addCor=async()=>{
+  const nome=document.getElementById("novo-cor").value.trim();
+  if(!nome){showToast("⚠️ Digite o nome");return;}
+  if(CORRETORES.includes(nome)){showToast("⚠️ Já cadastrado");return;}
+  CORRETORES.push(nome);await setDoc(doc(db,"config","corretores"),{lista:CORRETORES});showToast("✅ "+nome+" adicionado!");renderGestao();showSec("cfg");
+};
+window.remCor=async(nome)=>{
+  if(!confirm("Remover "+nome+"?"))return;
+  CORRETORES=CORRETORES.filter(c=>c!==nome);await setDoc(doc(db,"config","corretores"),{lista:CORRETORES});showToast("✅ Removido!");renderGestao();showSec("cfg");
+};
+
+// ── RENDER DISPATCHER ─────────────────────────────────────────
+window.RENDER=(nome)=>{
+  if(nome==="visao-geral")renderVisaoGeral();
+  else if(nome==="metas")renderMetas();
+  else if(nome==="diagnostico")renderDiag();
+  else if(nome==="gestao")renderGestao();
+};
+
+// ── CARREGAR DADOS ────────────────────────────────────────────
+window.APP_READY = async()=>{
+  try{
+    const [lancSnap,metaSnap,reunSnap,cfgSnap]=await Promise.all([
+      getDocs(collection(db,"lancamentos")),
+      getDocs(collection(db,"metas")),
+      getDocs(collection(db,"reunioes")),
+      getDocs(collection(db,"config"))
+    ]);
+    DADOS=lancSnap.docs.map(d=>({id:d.id,...d.data()}));
+    metaSnap.docs.forEach(d=>{METAS[d.data().corretor]=d.data();});
+    REUNIOES=reunSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);
+    cfgSnap.docs.forEach(d=>{
+      if(d.id==="corretores"&&d.data().lista?.length)CORRETORES=d.data().lista;
+      if(d.id==="meta_equipe")META_EQUIPE=d.data();
+    });
+    VGV_REAL={};CORRETORES.forEach(c=>VGV_REAL[c]=0);
+    dadosFiltrados().forEach(r=>{if(VGV_REAL[r.corretor]!==undefined&&r.valores_venda)r.valores_venda.forEach(v=>VGV_REAL[r.corretor]+=v);});
+    const meses=[...new Set(DADOS.map(r=>r.data.slice(0,7)))].sort().reverse();
+    const sel=document.getElementById("sel-mes");
+    const nm=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    meses.forEach(m=>{const opt=document.createElement("option");opt.value=m;const[ano,mes]=m.split("-");opt.textContent=nm[parseInt(mes)-1]+"/"+ano;sel.appendChild(opt);});
+    const mc=new Date().toISOString().slice(0,7);
+    if(meses.includes(mc)){sel.value=mc;MES_FILTRO=mc;}
+    renderVisaoGeral();
+  }catch(e){
+    document.getElementById("tab-visao-geral").innerHTML=`<div class="card" style="margin-top:16px"><div class="rec-box" style="color:#C62828">Erro ao carregar: ${e.message}</div></div>`;
+  }
+};
+</script>
+</body>
+</html>
